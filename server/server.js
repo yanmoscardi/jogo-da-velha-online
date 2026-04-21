@@ -5,8 +5,16 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 
+// ⚠️ IMPORTANTE PRA RENDER
+app.get("/", (req, res) => {
+  res.send("Servidor rodando 🚀");
+});
+
 const io = new Server(server, {
-  cors: { origin: "*" }
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
 
 function createRoom() {
@@ -42,16 +50,22 @@ function checkWinner(board) {
   return null;
 }
 
+// 🔥 ENVIA SALAS
 function sendRooms() {
   const list = Object.keys(rooms).map(name => ({
     name,
     players: rooms[name].players.length
   }));
+
+  console.log("Enviando salas:", list);
+
   io.emit("roomList", list);
 }
 
 io.on("connection", (socket) => {
+  console.log("Novo usuário conectado:", socket.id);
 
+  // 🔥 envia ao conectar
   sendRooms();
 
   socket.on("joinRoom", ({ roomName, playerName }) => {
@@ -132,6 +146,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
+    console.log("Usuário saiu:", socket.id);
+
     for (let name in rooms) {
       let room = rooms[name];
 
@@ -144,7 +160,6 @@ io.on("connection", (socket) => {
 
     sendRooms();
   });
-
 });
 
 const PORT = process.env.PORT || 3000;

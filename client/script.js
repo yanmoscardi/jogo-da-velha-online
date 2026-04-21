@@ -1,4 +1,8 @@
-const socket = io("http://localhost:3000"); // TROCAR DEPOIS
+const socket = io("https://jogo-da-velha-server-hpo1.onrender.com", {
+  transports: ["websocket"],
+  reconnection: true,
+  reconnectionAttempts: 5
+});
 
 let board = document.getElementById("board");
 let statusText = document.getElementById("status");
@@ -11,34 +15,28 @@ let currentRoom = null;
 let currentPlayers = [];
 let score = { X: 0, O: 0 };
 
-function renderBoard() {
-  board.innerHTML = "";
+// 🔥 DEBUG
+socket.on("connect", () => {
+  console.log("✅ Conectado ao servidor");
+});
 
-  cells.forEach((val, i) => {
-    const cell = document.createElement("div");
-    cell.className = "cell";
+socket.on("connect_error", (err) => {
+  console.log("❌ Erro conexão:", err.message);
+});
 
-    if (val) {
-      cell.textContent = val;
-      cell.classList.add(val.toLowerCase());
-    }
-
-    cell.onclick = () => handleMove(i);
-
-    board.appendChild(cell);
-  });
-}
-
-renderBoard();
-
+// 🔥 RECEBER SALAS
 socket.on("roomList", (rooms) => {
+  console.log("Salas recebidas:", rooms);
+
   roomsDiv.innerHTML = "";
 
   rooms.forEach(room => {
     const div = document.createElement("div");
     div.className = "room";
     div.textContent = `${room.name} (${room.players}/2)`;
+
     div.onclick = () => joinRoom(room.name);
+
     roomsDiv.appendChild(div);
   });
 });
@@ -92,6 +90,8 @@ function setupGame(room) {
 }
 
 function updateStatus(room, result = null) {
+  if (!currentPlayers.length) return;
+
   const p1 = currentPlayers[0];
   const p2 = currentPlayers[1];
 
@@ -102,17 +102,13 @@ function updateStatus(room, result = null) {
   text += `Placar X ${score.X} vs O ${score.O}<br>`;
 
   if (result) {
-    if (result.winner === "draw") {
-      text += "Empate!";
-    } else {
-      text += `Vitória do ${result.winner}`;
-    }
+    text += result.winner === "draw"
+      ? "Empate!"
+      : `Vitória do ${result.winner}`;
   } else {
-    if (room.turn === mySymbol) {
-      text += "Sua vez";
-    } else {
-      text += "Vez do adversário";
-    }
+    text += room.turn === mySymbol
+      ? "Sua vez"
+      : "Vez do adversário";
   }
 
   statusText.innerHTML = text;
@@ -122,6 +118,24 @@ function updateBoard(room) {
   cells = room.board;
   currentPlayer = room.turn;
   renderBoard();
+}
+
+function renderBoard() {
+  board.innerHTML = "";
+
+  cells.forEach((val, i) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+
+    if (val) {
+      cell.textContent = val;
+      cell.classList.add(val.toLowerCase());
+    }
+
+    cell.onclick = () => handleMove(i);
+
+    board.appendChild(cell);
+  });
 }
 
 function highlightWin(combo) {
@@ -140,3 +154,5 @@ function handleMove(i) {
     index: i
   });
 }
+
+renderBoard();
