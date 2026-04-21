@@ -1,0 +1,39 @@
+body {
+  background: #111;
+  color: white;
+  text-align: center;
+  font-family: Arial;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  gap: 5px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.cell {
+  width: 100px;
+  height: 100px;
+  background: #222;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cell.x { color: #00d4ff; }
+.cell.o { color: #ff4d4d; }
+
+.room {
+  margin: 5px;
+  padding: 10px;
+  background: #222;
+  cursor: pointer;
+}
+
+.win {
+  background: #0af !important;
+}
